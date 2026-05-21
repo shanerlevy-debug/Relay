@@ -10,6 +10,8 @@ A single-workspace Slack bot that routes messages to multiple Claude Managed Age
 
 No public URL, no OAuth, no multi-tenancy. ~250 lines of Python + Slack's Socket Mode. Single Slack workspace, N agents, thread continuity via SQLite.
 
+For the polished deployment runbook (the client-facing Blueprint deliverable), see [`docs/RUNBOOK.md`](docs/RUNBOOK.md) (or the rendered [`docs/RUNBOOK.pdf`](docs/RUNBOOK.pdf)).
+
 For the architectural rationale, see `../slack-cma-direct-feasibility.md`. For the full handoff context, see `../slack-cma-multi-agent-mvp-handoff.md`.
 
 ## Local demo (Windows)
