@@ -87,7 +87,7 @@ PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 EOF
 chmod 644 /etc/cron.d/slack-cma-bridge-redeploy
 
-chmod +x "$APP_DIR/deploy/redeploy.sh"
+chmod +x "$APP_DIR/deploy/bootstrap.sh" "$APP_DIR/deploy/redeploy.sh"
 
 echo ""
 echo "==> Bootstrap complete. Next steps:"
