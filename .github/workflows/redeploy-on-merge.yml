@@ -1,0 +1,47 @@
+name: Redeploy on merge
+
+# Triggers the Lightsail redeploy script over SSH when agents.yaml or bridge
+# code lands on main. Optional fast-path — the box's cron job also pulls every
+# 5 minutes, so this workflow can be left unconfigured if you'd rather not
+# manage an SSH deploy key.
+#
+# Setup (one-time, per deployment):
+#   Repo Settings -> Secrets and variables -> Actions -> New repository secret
+#     LIGHTSAIL_HOST     — instance public IP or DNS
+#     LIGHTSAIL_USER     — usually `ubuntu`
+#     LIGHTSAIL_SSH_KEY  — full PEM-format private key (the one matching the
+#                          public key in /home/ubuntu/.ssh/authorized_keys)
+#
+# Without those secrets the job no-ops (it doesn't fail the build).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'agents.yaml'
+      - 'bridge.py'
+      - 'requirements.txt'
+      - 'deploy/**'
+
+jobs:
+  redeploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for required secrets
+        id: check
+        run: |
+          if [ -z "${{ secrets.LIGHTSAIL_HOST }}" ] || [ -z "${{ secrets.LIGHTSAIL_SSH_KEY }}" ]; then
+            echo "Lightsail SSH secrets not configured; skipping (cron will pick up the change within 5 min)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: SSH into Lightsail and run redeploy
+        if: steps.check.outputs.skip == 'false'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.LIGHTSAIL_HOST }}
+          username: ${{ secrets.LIGHTSAIL_USER }}
+          key: ${{ secrets.LIGHTSAIL_SSH_KEY }}
+          script: sudo /opt/slack-cma-bridge/deploy/redeploy.sh

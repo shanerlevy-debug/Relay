@@ -62,6 +62,7 @@ On the Slack app's **Settings → Socket Mode** page, the connection indicator f
 Add or remove agents by editing `agents.yaml`:
 
 ```yaml
+environment_id: env_018YFpVVwTNWu8TRef2jfbvq
 default: alfred
 
 agents:
@@ -75,7 +76,59 @@ agents:
 ```
 
 Locally: stop the bridge (Ctrl+C), edit, restart.
-On a deployed Lightsail box: see the Blueprint runbook — agents are managed via git-ops (PR the YAML in this repo; the box pulls + reloads).
+On a deployed Lightsail box: see [Deploy](#deploy) below — agents are managed via git-ops.
+
+## Deploy
+
+The deployed shape: one Ubuntu Lightsail instance ($3.50/mo) running the bridge under systemd, pulling agent config from this repo every 5 minutes.
+
+```
+/opt/slack-cma-bridge/        git clone of this repo (read-write by slackbridge user)
+  ├── bridge.py
+  ├── agents.yaml             edited via git-ops; pulled fresh by redeploy
+  ├── .venv/
+  └── deploy/
+       ├── slack-cma-bridge.service
+       ├── bootstrap.sh
+       └── redeploy.sh
+
+/etc/slack-cma-bridge/
+  └── bridge.env              tokens (chmod 640, root:slackbridge) — NEVER committed
+
+/var/lib/slack-cma-bridge/
+  └── threads.db              SQLite, persists across deploys
+```
+
+### One-time provisioning
+
+1. Create a $3.50/mo Lightsail instance (Ubuntu 22.04, any region near you).
+2. SSH in.
+3. ```bash
+   sudo git clone https://github.com/shanerlevy-debug/Relay.git /opt/slack-cma-bridge
+   cd /opt/slack-cma-bridge
+   sudo bash deploy/bootstrap.sh
+   sudo vi /etc/slack-cma-bridge/bridge.env       # paste real tokens
+   sudo systemctl enable --now slack-cma-bridge
+   sudo journalctl -u slack-cma-bridge -f
+   ```
+
+Bootstrap installs the systemd unit, creates the `slackbridge` user, sets up a venv, installs deps, and registers a cron entry that runs `redeploy.sh` every 5 minutes.
+
+### Editing agents post-deploy (git-ops)
+
+```
+edit agents.yaml in this repo → PR → merge to main
+                                       │
+                                       ├─► GitHub Action SSHes to the box and
+                                       │   runs redeploy.sh (instant fast-path,
+                                       │   optional — needs SSH key secret)
+                                       └─► Cron on the box pulls every 5 min
+                                           and runs redeploy.sh (always-on fallback)
+```
+
+`redeploy.sh` does a `git fetch + reset --hard origin/main`, reinstalls deps if `requirements.txt` changed, and `systemctl restart`s the bridge. **Local edits to `/opt/slack-cma-bridge/` are destructive** — anything not in the repo is wiped on the next pull. Edit in the repo only.
+
+To wire the GitHub Action fast-path: in repo Settings → Secrets and variables → Actions, add `LIGHTSAIL_HOST`, `LIGHTSAIL_USER`, `LIGHTSAIL_SSH_KEY`. Without these the workflow no-ops cleanly — cron still picks up the change within 5 min.
 
 ## Troubleshooting
 
