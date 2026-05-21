@@ -1,0 +1,6 @@
+# Force LF line endings on files that run on Linux (the Lightsail box).
+# Windows checkouts will see LF for these; everything else gets default handling.
+*.sh         text eol=lf
+*.service    text eol=lf
+*.yml        text eol=lf
+*.yaml       text eol=lf
