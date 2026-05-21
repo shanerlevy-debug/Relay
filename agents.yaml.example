@@ -1,0 +1,20 @@
+# Copy to agents.yaml and edit. Slugs are what users type after @Bot
+# (e.g. "@Relay vanguard what's happening in semis"). Slugs are lowercased
+# on match — keep them lowercase here too.
+#
+# environment_id is the CMA environment all sessions run in. Find/create one
+# in the Anthropic Console, or list them via:
+#   from anthropic import Anthropic
+#   for e in Anthropic().beta.environments.list(): print(e.id, e.name)
+environment_id: env_replace_me
+
+default: alfred
+
+agents:
+  alfred:
+    anthropic_agent_id: agent_replace_me
+    description: General-purpose assistant. Default for untagged messages.
+
+  researcher:
+    anthropic_agent_id: agent_replace_me
+    description: Deep research and synthesis.

@@ -1,0 +1,11 @@
+environment_id: env_018YFpVVwTNWu8TRef2jfbvq   # slack-bot-env
+default: slack-test
+
+agents:
+  slack-test:
+    anthropic_agent_id: agent_0112NyBraSMpk7Tjub9mMAWh
+    description: Test bot. Default for untagged messages and DMs.
+
+  vanguard:
+    anthropic_agent_id: agent_011CaPqFYYtWssBNheHKPA5g
+    description: Market research bot.

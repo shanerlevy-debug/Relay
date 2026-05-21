@@ -1,0 +1,4 @@
+slack-bolt>=1.21
+anthropic>=0.40
+PyYAML>=6.0
+python-dotenv>=1.0
